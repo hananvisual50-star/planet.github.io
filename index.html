@@ -210,6 +210,26 @@
         }
       });
     }
+
+    // 5. Listener Pertukaran Pesan (postMessage) untuk memfasilitasi "Ingat Saya" di iOS Safari / PWA Iframe
+    window.addEventListener("message", (event) => {
+      if (event.data) {
+        const gasIframe = document.getElementById("gas-iframe");
+        if (event.data.type === "GET_PLANET_CREDS") {
+          const user = localStorage.getItem("remember_user");
+          const pass = localStorage.getItem("remember_pass");
+          if (gasIframe && gasIframe.contentWindow) {
+            gasIframe.contentWindow.postMessage({ type: "RETURN_PLANET_CREDS", user: user, pass: pass }, "*");
+          }
+        } else if (event.data.type === "SAVE_PLANET_CREDS") {
+          localStorage.setItem("remember_user", event.data.user);
+          localStorage.setItem("remember_pass", event.data.pass);
+        } else if (event.data.type === "CLEAR_PLANET_CREDS") {
+          localStorage.removeItem("remember_user");
+          localStorage.removeItem("remember_pass");
+        }
+      }
+    });
   </script>
 </body>
 </html>
