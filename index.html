@@ -1,41 +1,215 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="theme-color" content="#059669">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Planet System">
   
-  <title>PLANET PRODUCUTION</title> 
+  <title>Planet Production</title>
+  
+  <!-- Link Manifest & Favicon (Path Relatif) -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="theme-color" content="#059669">
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    body {
+    /* Reset & Full Screen Lock */
+    html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden; /* Biar ga ada scrollbar */
-      background-color: #0d1117; /* Warna background gelap biar pas loading ga silau */
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0d1117;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
-    iframe {
+    
+    /* Memastikan Iframe benar-benar fullscreen & tanpa border */
+    .iframe-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       border: none;
-      width: 100vw;
-      height: 100vh;
-      display: block;
+      z-index: 10;
+    }
+
+    /* Transisi Halus */
+    .fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease-out;
     }
   </style>
 </head>
 <body>
 
-  <iframe src="https://script.google.com/macros/s/AKfycbwZjbuN6uG8mO9BeSqvkF8lyjT-dKgTMHrWVgunjLAqR5eBdYWUAWxWS0yuFl6XXjmRKg/exec"></iframe>
+  <!-- 1. SPLASH SCREEN / LOADING INDICATOR -->
+  <div id="loading-screen" class="fixed inset-0 bg-[#0d1117] flex flex-col items-center justify-center z-50 transition-opacity duration-500">
+    <div class="flex flex-col items-center space-y-6 px-6 text-center">
+      <!-- Outer Pulse Ring -->
+      <div class="relative flex items-center justify-center">
+        <div class="absolute animate-ping h-20 w-20 rounded-full bg-emerald-500 opacity-20"></div>
+        <div class="relative bg-gradient-to-tr from-emerald-600 to-teal-500 p-5 rounded-3xl shadow-xl shadow-emerald-950/50">
+          <i data-lucide="layers" class="h-10 w-10 text-white"></i>
+        </div>
+      </div>
+      
+      <div>
+        <h1 class="text-white text-xl font-bold tracking-wide">Planet System</h1>
+        <p class="text-emerald-400 text-xs mt-1 font-medium tracking-widest uppercase">Connecting to Portal...</p>
+      </div>
+
+      <!-- Loading Bar -->
+      <div class="w-48 bg-slate-800 h-1 rounded-full overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-2/3 rounded-full animate-[loading_1.5s_infinite_ease-in-out]"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. IFRAME WRAPPER (GOOGLE APPS SCRIPT) -->
+  <iframe 
+    id="gas-iframe" 
+    class="iframe-container"
+    src="https://script.google.com/macros/s/AKfycbwZjbuN6uG8mO9BeSqvkF8lyjT-dKgTMHrWVgunjLAqR5eBdYWUAWxWS0yuFl6XXjmRKg/exec" 
+    allow="geolocation; microphone; camera; midi; encrypted-media;"
+    sandbox="allow-layouts allow-storage-access-by-user-activation allow-downloads allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+  ></iframe>
+
+  <!-- 3. OFFLINE OVERLAY SCREEN -->
+  <div id="offline-screen" class="hidden fixed inset-0 bg-[#0d1117]/95 backdrop-blur-md flex flex-col items-center justify-center z-40 px-6 text-center">
+    <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl flex flex-col items-center">
+      <div class="bg-red-500/10 p-4 rounded-full text-red-400 mb-4">
+        <i data-lucide="wifi-off" class="h-12 w-12"></i>
+      </div>
+      <h3 class="text-white text-lg font-bold">Koneksi Terputus</h3>
+      <p class="text-slate-400 text-sm mt-2">Aplikasi ini memerlukan koneksi internet aktif untuk memuat sistem database dari Google Sheets.</p>
+      <button onclick="window.location.reload()" class="mt-6 w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-medium rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center space-x-2">
+        <i data-lucide="rotate-cw" class="h-4 w-4"></i>
+        <span>Coba Lagi</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. iOS INSTALL PROMPT (BOTTOM SHEET) -->
+  <div id="ios-prompt" class="hidden fixed bottom-0 inset-x-0 p-4 z-50 max-w-md mx-auto animate-[slideUp_0.4s_ease-out]">
+    <div class="bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl shadow-black/80 flex flex-col space-y-4">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="bg-gradient-to-tr from-emerald-600 to-teal-500 p-2.5 rounded-2xl shadow-md">
+            <i data-lucide="layers" class="h-6 w-6 text-white"></i>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold text-sm">Install Planet System</h4>
+            <p class="text-slate-400 text-xs">Tambahkan aplikasi ini ke beranda iPhone Anda.</p>
+          </div>
+        </div>
+        <button id="close-ios-prompt" class="text-slate-400 hover:text-white p-1 rounded-full hover:bg-slate-800">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="border-t border-slate-800 pt-3 text-xs text-slate-300 space-y-2.5">
+        <div class="flex items-center space-x-3">
+          <span class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-[10px]">1</span>
+          <span>Ketuk tombol <strong class="text-white">Bagikan (Share)</strong> <i data-lucide="share" class="inline h-4 w-4 text-blue-400 align-text-bottom"></i> di bagian bawah Safari.</span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-[10px]">2</span>
+          <span>Gulir ke bawah lalu pilih <strong class="text-white">"Tambahkan ke Layar Utama" (Add to Home Screen)</strong> <i data-lucide="plus-square" class="inline h-4 w-4 text-slate-300 align-text-bottom"></i>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom CSS for custom animations -->
+  <style>
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(50%); }
+      100% { transform: translateX(100%); }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+  </style>
+
+  <!-- JAVASCRIPT LOGIC -->
   <script>
+    // Inisialisasi ikon Lucide
+    lucide.createIcons();
+
+    const iframe = document.getElementById('gas-iframe');
+    const loadingScreen = document.getElementById('loading-screen');
+    const offlineScreen = document.getElementById('offline-screen');
+    const iosPrompt = document.getElementById('ios-prompt');
+    const closeIosBtn = document.getElementById('close-ios-prompt');
+
+    // 1. Hilangkan loading screen saat iframe selesai memuat
+    iframe.onload = () => {
+      loadingScreen.classList.add('fade-out');
+      // Berikan jeda untuk menghapus elemen dari DOM agar tidak mengganggu interaksi layar
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+      }, 500);
+    };
+
+    // 2. Deteksi Koneksi Internet (Realtime)
+    function updateOnlineStatus() {
+      if (navigator.onLine) {
+        offlineScreen.classList.add('hidden');
+      } else {
+        offlineScreen.classList.remove('hidden');
+        loadingScreen.style.display = 'none'; // Sembunyikan loading jika offline saat startup
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus(); // Cek status saat pertama kali dibuka
+
+    // 3. Deteksi Perangkat iOS untuk Menampilkan Petunjuk Install
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+
+    function isInStandaloneMode() {
+      return ('standalone' in window.navigator) && (window.navigator.standalone);
+    }
+
+    // Tampilkan prompt jika pengguna menggunakan iOS dan belum menginstal aplikasinya
+    if (isIOS() && !isInStandaloneMode()) {
+      // Tampilkan setelah jeda waktu 4 detik agar user tidak merasa terganggu di awal
+      setTimeout(() => {
+        iosPrompt.classList.remove('hidden');
+      }, 4000);
+    }
+
+    closeIosBtn.addEventListener('click', () => {
+      iosPrompt.classList.add('hidden');
+    });
+
+    // 4. Registrasi Service Worker dengan proteksi protokol (mencegah error pada blob/sandbox pratinjau)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(reg => console.log('Service Worker terdaftar!', reg))
-          .catch(err => console.log('Gagal mendaftar Service Worker', err));
+        // Hanya daftarkan Service Worker jika dibuka menggunakan protokol HTTP atau HTTPS
+        if (window.location.protocol.startsWith('http')) {
+          navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('Service Worker terdaftar secara sukses:', reg.scope))
+            .catch(err => console.error('Gagal mendaftar Service Worker:', err));
+        } else {
+          console.warn('Pendaftaran Service Worker dilewati: Aplikasi dijalankan di luar protokol HTTP/HTTPS (misalnya lingkungan pratinjau sandbox).');
+        }
       });
     }
   </script>
-
 </body>
 </html>
